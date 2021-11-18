@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Build Directory
+build/
+
+# Ancillary Directory
+.ipynb_checkpoints/
+.vscode
