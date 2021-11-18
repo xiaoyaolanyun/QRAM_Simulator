@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${PROJECT_SOURCE_DIR}/ThirdParty/pybind11
-                    ${PROJECT_SOURCE_DIR}/ThirdParty/fmt-8.0.1
+                    ${PROJECT_SOURCE_DIR}/ThirdParty/fmt-8.0.1/include
                     )
 
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
@@ -55,8 +55,9 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(PythonInterp 3)
 find_package(PythonLibs 3)
 include_directories(${PYTHON_INCLUDE_DIRS})
-
-add_compile_options(-fPIC)
+if (UNIX)
+	add_compile_options(-fPIC)
+endif(UNIX)
 add_subdirectory(src)
 add_subdirectory(python)
 add_subdirectory(test)

@@ -95,7 +95,7 @@ class QRAM_bb {
 
 public:
     // double global_coef = 1.0;
-    size_t seed = 10101;
+	unsigned int seed = 10101;
     default_random_engine reng;
     using noise_type = typename decltype(noise_parameters)::value_type;
     using BranchType = typename decltype(branches)::value_type;
@@ -114,7 +114,7 @@ public:
     void set_memory_random();
 
     inline size_t get_qubit_num() const { return 2 * (pow2(nlayers) - 1); }
-    inline void set_seed(size_t _seed) { seed = _seed; reng.seed(_seed); }
+    inline void set_seed(unsigned int _seed) { seed = _seed; reng.seed(_seed); }
     inline size_t get_seed() { return seed; }
     inline set<size_t>& get_address() { return address; }
     inline void clear_address() { address.clear(); }    

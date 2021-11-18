@@ -40,7 +40,7 @@ struct Qubit {
     Qubit(const Qubit& old) {
         ZEROONE = old.ZEROONE;
     }
-    inline int state() const { return ZEROONE; }
+    inline bool state() const { return ZEROONE == 1; }
     inline bool zero() const { return ZEROONE == 0; }
     inline bool one() const { return ZEROONE == 1; }
     inline int data() const { return ZEROONE; }
@@ -183,11 +183,11 @@ public:
     vector<const node_t*> get_treenodes(vector<size_t> idxs) const;
     vector<const node_t*> get_treenodes(int layer) const;
     
-    int left_of(int idx) const;
+	size_t left_of(size_t idx) const;
     node_t* left_of(node_t* node);
-    int right_of(int idx) const;
+	size_t right_of(size_t idx) const;
     node_t* right_of(node_t* node);
-    int parent_of(int idx) const;
+    size_t parent_of(size_t idx) const;
     node_t* parent_of(node_t* node);
 
     string to_string() const;

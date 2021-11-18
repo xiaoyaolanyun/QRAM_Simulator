@@ -20,20 +20,20 @@ vector<bool> calc_pos(int pos, int layer) {
 
 vector<size_t> get_nodes_in_layer(int layer) {
     // layer -= 1;
-    int begin = pow2(layer) - 1;
-    int end = begin + pow2(layer);
+    size_t begin = pow2(layer) - 1;
+	size_t end = begin + pow2(layer);
     vector<size_t> ret;
     ret.resize(end - begin);
-    for (int i = begin; i < end; ++i) {
+    for (size_t i = begin; i < end; ++i) {
         ret[i - begin] = i;
     }
     return ret;
 }
 
 void test_get_nodes_in_layer() {
-    for (int i = 0;i < 3;++i) {
-        cout << vec2str(get_nodes_in_layer(i)) << endl;
-    }
+	for (int i = 0; i < 3; ++i) {
+		cout << vec2str(get_nodes_in_layer(i)) << endl;
+	}
 }
 
 string pos2str(int pos, int layer) {
@@ -106,7 +106,7 @@ vector<const node_t*> Tree::get_treenodes(int layer) const {
     return get_treenodes(ids);
 }
 
-int Tree::left_of(int idx) const {
+size_t Tree::left_of(size_t idx) const {
     return 2 * idx + 1;
 }
 
@@ -115,7 +115,7 @@ node_t* Tree::left_of(node_t* node) {
     return access_treenode(left_of(idx));
 }
 
-int Tree::right_of(int idx) const {
+size_t Tree::right_of(size_t idx) const {
     return 2 * idx + 2;
 }
 
@@ -124,8 +124,13 @@ node_t* Tree::right_of(node_t* node) {
     return access_treenode(right_of(idx));
 }
 
-int Tree::parent_of(int idx) const {
-    return int((idx - 1) / 2);
+size_t Tree::parent_of(size_t idx) const {
+    return size_t((idx - 1) / 2);
+}
+
+node_t* Tree::parent_of(node_t* node) {
+	size_t idx = idx_of(node);
+	return access_treenode(parent_of(idx));
 }
 
 string Tree::to_string() const {
