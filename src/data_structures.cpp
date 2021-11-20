@@ -138,11 +138,11 @@ string Tree::to_string() const {
     ret << 0 << ": " << get_treenode(0)->to_string() << "\n";
     
     for (int j = 1; j < n_layer;++j) {
-        for (int i = pow2(j) - 1;i < pow2(j + 1) - 1;++i) {
-            ret << i << ": ";
-            ret << get_treenode(i)->to_string();
-            ret << " ";
-        }
+		for (size_t i = pow2(j) - 1; i < pow2(j + 1) - 1; ++i) {
+			ret << i << ": ";
+			ret << get_treenode(i)->to_string();
+			ret << " ";
+		}
         ret << "\n";
     }
     return ret.str();

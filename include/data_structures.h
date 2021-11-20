@@ -7,8 +7,8 @@
 #include <list>
 #include <complex>
 #include <map>
+#include <algorithm>
 #include "logger.h"
-
 using namespace std;
 
 inline constexpr size_t pow2(unsigned int n) { return (1ull) << (n); }

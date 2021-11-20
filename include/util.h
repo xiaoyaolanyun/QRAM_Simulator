@@ -2,6 +2,7 @@
 #include <complex>
 #include <type_traits>
 #include <algorithm>
+#include <numeric>
 #include <map>
 #include <vector>
 #include <random>
@@ -102,4 +103,27 @@ bool vector_less(const vector<T>& v1, const vector<T>& v2)
         if (v2[i] < v1[i]) return false;
     }
     return false;
+}
+
+inline vector<double> linspace(double min, double max, size_t points) {
+	double delta = (max - min) / (points - 1);
+	vector<double> ret;
+	ret.reserve(points);
+	for (size_t i = 0; i < points; ++i) {
+		ret.push_back(min + delta * i);
+	}
+	return ret;
+}
+
+inline pair<double, double> mean_std(vector<double> m) {
+	auto sq = [](double m, double y) {
+		return m + y * y;
+	};
+
+	double sum = accumulate(m.begin(), m.end(), 0.0);
+	double sumsq = accumulate(m.begin(), m.end(), 0.0, sq);
+	double mean = sum / m.size();
+	double meansq = sumsq / m.size();
+	return { mean, sqrt(meansq - mean * mean) };
+
 }

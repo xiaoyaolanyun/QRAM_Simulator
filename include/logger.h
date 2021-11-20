@@ -45,12 +45,21 @@ string num2str(Ty num) {
 }
 
 inline string _datetime() {
+	char buf[80];
     time_t now = time(0);
-    struct tm tstruct;
-    char buf[80];
-    tstruct = *localtime(&now);
-    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+    tm tstruct;
+    localtime_s(&tstruct, &now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tstruct);
     return buf;
+}
+
+inline string _datetime_simple() {
+	char buf[80];
+	time_t now = time(0);
+	tm tstruct;
+	localtime_s(&tstruct, &now);
+	strftime(buf, sizeof(buf), "%Y%m%d-%H%M%S", &tstruct);
+	return buf;
 }
 
 struct timer {
@@ -64,35 +73,46 @@ struct timer {
     }
 };
 
-struct logger {
+struct Logger {
     ofstream out;    
     bool on = true;
     vector<timer> timers;
-    logger(string filename) {
-        out = ofstream(filename);
-    }
+    Logger() { }
+
+	inline static string autofilename(string prefix, string postfix) {
+		return prefix + _datetime_simple() + postfix;
+	}
+
+	inline void newfile_auto() {
+		string autofname = autofilename("TestResult ", ".txt");
+		out = ofstream(autofname);
+	}
+
+	inline void newfile(string name) {
+		out = ofstream(name);
+	}
     
     inline void set_on() { on = true; }
     
     inline void set_off() { on = false; }
 
-    inline logger& info(string str) {
+    inline Logger& info(string str) {
         if (on) out << str;
         return *this;
     }
-    inline logger& operator<<(string str) {
+    inline Logger& operator<<(string str) {
         return info(str);
     }
-    inline logger& linesplit() {
+    inline Logger& linesplit() {
         return info( "----------------------------\n");        
     }   
-    inline logger& datetime() {
+    inline Logger& datetime() {
         return info(_datetime());
     }
     inline void timer_start() {
         timers.push_back(timer());
     }
-    double timer_end(double unit = sec) {
+    inline double timer_end(double unit = sec) {
         if (timers.size() == 0) {
             return 0.0;
         }            
@@ -100,6 +120,9 @@ struct logger {
         timers.pop_back();
         return ret;
     }
+	inline void flush() {
+		out.flush();
+	}
 };
 
 struct profile {
@@ -229,4 +252,12 @@ struct profiler {
 
 #define FunctionProfiler volatile profiler _profilehelper_(__FUNCTION__)
 
-extern logger _logger;
+extern Logger logger;
+
+template <typename... Ty>
+void print_and_log(string fmt_str, Ty&&...args) {
+	string str = format(fmt_str, forward<Ty>(args)...);
+	print(str);
+	logger << str;
+	logger.flush();
+}

@@ -19,10 +19,10 @@ PYBIND11_MODULE(pyqram, m)
 {
     m.doc() = "";
 
-// #define loggerdef(funcname) classfunc(logger, funcname)    
-//     py::class_<logger>(m, "logger")
+// #define loggerdef(funcname) classfunc(Logger, funcname)    
+//     py::class_<Logger>(m, "Logger")
 //         .def(py::init<string>())
-//         .def("__lshift__", &logger::operator<<, py::is_operator())
+//         .def("__lshift__", &Logger::operator<<, py::is_operator())
 //         loggerdef(linesplit)
 //         loggerdef(datetime)
 //         loggerdef(timer_start)

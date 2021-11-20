@@ -85,7 +85,7 @@ bool QRAM_bb::compare_result(const Branch& branch)
 {
         size_t addr = branch.address;
         Qubit state = branch.bus;
-        // _logger.info(format("addr={}, state={}, memory={}\n", addr, state.state(), memory[addr]));
+        // logger.info(format("addr={}, state={}, memory={}\n", addr, state.state(), memory[addr]));
         return state.state() == memory[addr];
 }
 
@@ -215,16 +215,20 @@ void QRAM_bb::set_address(set<size_t> &addresses) {
 }
 
 void QRAM_bb::set_address_sample(size_t nsample) {
-    choice_from(address, nlayers, nsample, reng);
+	if (nsample >= pow2(nlayers)) { 
+		set_address_full();  
+	}
+	else {
+		choice_from(address, nlayers, nsample, reng);
+	}
 }
 
 void QRAM_bb::set_address_portion(double portion) {
-    address.clear();
-    uniform_real_distribution<double> ud(0, 1);
-    for (size_t i = 0;i < pow2(nlayers);++i) {
-        if (ud(reng) < portion)
-            address.insert(i);
-    }
+    size_t nsample = size_t(pow2(nlayers) *portion);
+	if (portion > 0.5) {
+		set_address_full();
+	}
+	set_address_sample(nsample);
 }
 
 void QRAM_bb::set_address_full() {
@@ -274,7 +278,7 @@ double QRAM_bb::get_fidelity() {
         Tree& tree = branch.first.state;
         // +1 or -1
         bool correct = compare_result(branch.first);
-        // _logger << format("{}\n", correct);
+        // logger << format("{}\n", correct);
         // add_or_append(tree, actual_amp, correct);
 
         if (tree_fidelity.find(tree) == tree_fidelity.end()) {
@@ -337,7 +341,7 @@ string QRAM_bb::state_view_to_string() {
     for (const auto& clas: state_view) {
         auto& treeinfo = clas.second;
         double prob = treeinfo.prob;
-        double nbranches = treeinfo.branches.size();
+        size_t nbranches = treeinfo.branches.size();
         s += format("p={} nbranch={}", prob, nbranches);
         s += '\n';
     }
@@ -455,7 +459,7 @@ void QRAM_bb::run_fetchdata() {
         vector<const node_t*> nodes = branch.first.state.get_treenodes(ids);
         for (size_t i = 0, pos = 0; i < nodes.size(); ++i, pos += 2) {
             const node_t* node = nodes[i];
-            // _logger << format("branch={} node=[{},{}] memory=[{},{}]\n",
+            // logger << format("branch={} node=[{},{}] memory=[{},{}]\n",
             //     branchid,
             //     node->addr.state(), node->data.state(),
             //     memory[pos], memory[pos + 1]);
@@ -500,7 +504,7 @@ void QRAM_bb::try_merge() {
             if (branches[i].first == branches[j].first) {
             branches[i].second += branches[j].second;
             branches[j].second = 0;
-            // _logger << "merged" << "\n";
+            // logger << "merged" << "\n";
             }
         }
     }
@@ -581,4 +585,65 @@ string QRAM_bb::to_string() const {
         out << branch.first.to_string() << endl;
     }
     return out.str();
+}
+
+#include "qram.h"
+
+vector<double> qram_fid_full_address(
+	int size,
+	int n_trials,
+	vector<QRAM_bb::noise_type> noises,
+	unsigned int &init_seed,
+	bool verbose)
+{
+	QRAM_bb qram(size);
+	qram.set_seed(init_seed);
+	double tot_fid = 0;
+	double tot_fid_sq = 0;
+	qram.set_memory_random();
+	qram.set_address_full();
+	qram.add_noise_models(noises);
+	int i;
+	vector<double> test_results;
+	test_results.resize(n_trials);
+	for (i = 1; i <= n_trials; ++i) {
+		qram.reseed();
+		qram.run();
+		double fidelity = qram.get_fidelity();
+		tot_fid += fidelity;
+		if (verbose) {
+			string output = format("size={:2d} seed={:12d} fidelity={:.3f} (current avg {:.3f})\n", size, qram.get_seed(), fidelity, tot_fid / i);
+			logger << output;
+			print(output);
+		}
+		test_results[i - 1] = fidelity;
+	}
+	init_seed = qram.reseed();
+	return test_results;
+}
+
+vector<double> qram_fid_sample_address(int size, int n_trials, vector<QRAM_bb::noise_type> noises, size_t nsamples, unsigned int & seed, bool verbose) {
+	QRAM_bb qram(size);
+	qram.set_seed(seed);
+	double tot_fid = 0;
+	qram.set_memory_random();
+	qram.set_address_sample(nsamples);
+	qram.add_noise_models(noises);
+	int i;
+	vector<double> test_results;
+	test_results.resize(n_trials);
+	for (i = 1; i <= n_trials; ++i) {
+		qram.reseed();
+		qram.run();
+		double fidelity = qram.get_fidelity();
+		tot_fid += fidelity;
+		if (verbose) {
+			string output = format("size={:2d} seed={:12d} fidelity={:.3f} (current avg {:.3f})\n", size, qram.get_seed(), fidelity, tot_fid / i);
+			logger << output;
+			print(output);
+		}
+		test_results[i - 1] = fidelity;
+	}
+	seed = qram.reseed();
+	return test_results;
 }

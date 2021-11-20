@@ -97,6 +97,10 @@ public:
     // double global_coef = 1.0;
 	unsigned int seed = 10101;
     default_random_engine reng;
+	inline double _rng() {
+		static uniform_real_distribution<double> ud(0, 1);
+		return ud(reng);
+	}
     using noise_type = typename decltype(noise_parameters)::value_type;
     using BranchType = typename decltype(branches)::value_type;
     
@@ -114,8 +118,12 @@ public:
     void set_memory_random();
 
     inline size_t get_qubit_num() const { return 2 * (pow2(nlayers) - 1); }
-    inline void set_seed(unsigned int _seed) { seed = _seed; reng.seed(_seed); }
-    inline size_t get_seed() { return seed; }
+	inline void set_seed(unsigned int _seed) { seed = _seed; reng.seed(_seed); }
+	inline unsigned int reseed() { 
+		set_seed(unsigned int(_rng() * numeric_limits<unsigned int>::max())); 
+		return seed; 
+	}
+    inline unsigned int get_seed() { return seed; }
     inline set<size_t>& get_address() { return address; }
     inline void clear_address() { address.clear(); }    
     inline vector<bool>& get_memory() { return memory; }
@@ -198,3 +206,22 @@ private:
     }
 
 };
+
+/* Use full address */
+vector<double> qram_fid_full_address(
+	int size,
+	int n_trials,
+	vector<QRAM_bb::noise_type> noises,
+	unsigned int& init_seed,
+	bool verbose
+);
+
+/* Use sample address */
+vector<double> qram_fid_sample_address(
+	int size, 
+	int n_trials, 
+	vector<QRAM_bb::noise_type> noises, 
+	size_t nsamples, 
+	unsigned int &seed, 
+	bool verbose
+);
